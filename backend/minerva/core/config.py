@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import PostgresDsn, computed_field
+from pydantic import SecretStr, computed_field
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,7 +35,15 @@ class Environment(StrEnum):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(
+            ".env.test",
+            ".env",
+            ".env.prod",
+        ),
+        env_ignore_empty=True,
+        extra="ignore",
+    )
 
     ENVIRONMENT: Environment = Environment.LOCAL
 
@@ -43,15 +51,25 @@ class Settings(BaseSettings):
     DB_PORT: int = 5432
     DB_DATABASE: str
     DB_USER: str
-    DB_PASSWORD: str
+    DB_PASSWORD: SecretStr
 
-    @computed_field
-    def DB_URI(self) -> PostgresDsn:
+    def _db_uri(self, *, async_: bool = True) -> MultiHostUrl:
         return MultiHostUrl.build(
-            scheme="postgresql+asyncpg",
+            scheme=f"postgresql+{'asyncpg' if async_ else 'psycopg'}",
             username=self.DB_USER,
-            password=self.DB_PASSWORD,
+            password=self.DB_PASSWORD.get_secret_value(),
             host=self.DB_HOST,
             port=self.DB_PORT,
             path=self.DB_DATABASE,
         )
+
+    @computed_field
+    def DB_URI(self) -> MultiHostUrl:
+        return self._db_uri()
+
+    @computed_field
+    def DB_URI_SYNC(self) -> MultiHostUrl:
+        return self._db_uri(async_=False)
+
+
+settings = Settings()  # type: ignore
