@@ -160,3 +160,5 @@ cython_debug/
 static/*
 *.db
 .ruff_cache
+__pycache__
+.env.*
