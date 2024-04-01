@@ -1,6 +1,10 @@
 from fastapi import FastAPI
+from starlette.middleware.authentication import AuthenticationMiddleware
+
+from minerva.core.middleware import authentication
 
 app = FastAPI()
+app.add_middleware(AuthenticationMiddleware, backend=authentication.AuthenticationBackend())
 
 
 @app.get("/")
