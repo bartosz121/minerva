@@ -37,13 +37,15 @@ class Environment(StrEnum):
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(
-            ".env.test",
             ".env",
             ".env.prod",
         ),
         env_ignore_empty=True,
         extra="ignore",
     )
+
+    ACCESS_TOKEN_COOKIE_NAME: str = "minerva_auth"
+    ACCESS_TOKEN_DURATION: int = 3600
 
     ENVIRONMENT: Environment = Environment.LOCAL
 
