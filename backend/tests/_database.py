@@ -22,8 +22,7 @@ def init_test_database():
 
     create_database(db_sync_uri)
 
-    yield
-    # try:
-    #     yield
-    # finally:
-    #     drop_database(db_sync_uri)
+    try:
+        yield
+    finally:
+        drop_database(db_sync_uri)
